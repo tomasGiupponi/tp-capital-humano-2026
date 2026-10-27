@@ -1,0 +1,38 @@
+# ==========================================
+# Secretos y variables de entorno
+# ==========================================
+*.env
+*.env.local
+*.env.*.local
+!*.env.example
+
+# ==========================================
+# Frontend (Next.js)
+# ==========================================
+frontend/node_modules/
+frontend/.pnpm-store/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/*.log
+
+# ==========================================
+# Backend (Spring Boot con Maven)
+# ==========================================
+api/target/
+backend/target/
+*.class
+*.jar
+
+# ==========================================
+# IDEs y editores
+# ==========================================
+.idea/
+*.iml
+.vscode/
+
+# ==========================================
+# Sistema operativo
+# ==========================================
+Thumbs.db
+.DS_Store
