@@ -5,6 +5,8 @@
 *.env.local
 *.env.*.local
 !*.env.example
+*local.properties
+application-local.properties
 
 # ==========================================
 # Frontend (Next.js)
