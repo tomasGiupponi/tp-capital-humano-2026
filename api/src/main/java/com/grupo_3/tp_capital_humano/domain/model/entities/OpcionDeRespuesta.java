@@ -1,5 +1,8 @@
 package com.grupo_3.tp_capital_humano.domain.model.entities;
 
+import com.grupo_3.tp_capital_humano.domain.patterns.audit.RegistroAuditoria;
+import com.grupo_3.tp_capital_humano.domain.patterns.audit.SujetoAuditable;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -8,7 +11,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -51,22 +53,38 @@ public class OpcionDeRespuesta extends SujetoAuditable {
     @Builder.Default
     private List<ValorOpcion> valores = new ArrayList<>();
 
+    @Override
+    protected String obtenerNombreEntidad() {
+        return "OPCION_RESPUESTA";
+    }
+
+    @Override
+    protected String obtenerIdEntidad() {
+        return this.codigo;
+    }
+
     /**
      * Coloca el campo activa en false, registra este cambio en RegistroAuditoria
-     * asignando el consultor que
-     * hizo el cambio y notifica a todos las instancias que formen parte del
-     * Observer.
+     * asignando el usuario que hizo el cambio y notifica a los observadores.
      * 
-     * @param consultor instancia que se persiste como el consultor que generó la
-     *                  acción.
+     * @param usuario nombre de usuario que generó la acción.
      */
     @Override
-    public void darDeBaja(Consultor consultor) {
+    public void darDeBaja(String usuario) {
         if (this.activa) {
             this.activa = false;
-            RegistroAuditoria reg = construirRegistro(consultor, "BAJA_LOGICA", "OpcionDeRespuesta", this.codigo);
+            RegistroAuditoria reg = construirRegistro(usuario, "BAJA_LOGICA");
             notificarObservadores(reg);
         }
+    }
+
+    /**
+     * Sobrecarga que permite dar de baja pasando la instancia del consultor.
+     * 
+     * @param consultor consultor que generó la acción.
+     */
+    public void darDeBaja(Consultor consultor) {
+        darDeBaja(consultor != null ? consultor.getNombreUsuario() : null);
     }
 
     /**

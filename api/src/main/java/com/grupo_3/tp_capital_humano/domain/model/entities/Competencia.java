@@ -2,9 +2,10 @@ package com.grupo_3.tp_capital_humano.domain.model.entities;
 
 import java.util.Objects;
 
+import com.grupo_3.tp_capital_humano.domain.patterns.audit.RegistroAuditoria;
+import com.grupo_3.tp_capital_humano.domain.patterns.audit.SujetoAuditable;
 import com.grupo_3.tp_capital_humano.domain.model.enums.TipoCompetencia;
 
-import jakarta.annotation.Generated;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -20,7 +21,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Representa una competencia laboral o habilidad requerida y evaluable en los puestos de trabajo.
+ * Representa una competencia laboral o habilidad requerida y evaluable en los
+ * puestos de trabajo.
  */
 @Entity
 @Table(name = "competencia")
@@ -48,22 +50,38 @@ public class Competencia extends SujetoAuditable {
     @Column(name = "activa", nullable = false)
     private boolean activa = true;
 
+    @Override
+    protected String obtenerNombreEntidad() {
+        return "COMPETENCIA";
+    }
+
+    @Override
+    protected String obtenerIdEntidad() {
+        return this.codigo;
+    }
+
     /**
      * Coloca el campo activa en false, registra este cambio en RegistroAuditoria
-     * asignando el consultor que
-     * hizo el cambio y notifica a todos las instancias que formen parte del
-     * Observer.
+     * asignando el usuario que hizo el cambio y notifica a los observadores.
      * 
-     * @param consultor instancia que se persiste como el consultor que generó la
-     *                  acción.
+     * @param usuario nombre de usuario que generó la acción.
      */
     @Override
-    public void darDeBaja(Consultor consultor) {
+    public void darDeBaja(String usuario) {
         if (this.activa) {
             this.activa = false;
-            RegistroAuditoria reg = construirRegistro(consultor, "BAJA_LOGICA", "Competencia", this.codigo);
+            RegistroAuditoria reg = construirRegistro(usuario, "BAJA_LOGICA");
             notificarObservadores(reg);
         }
+    }
+
+    /**
+     * Sobrecarga que permite dar de baja pasando la instancia del consultor.
+     * 
+     * @param consultor consultor que generó la acción.
+     */
+    public void darDeBaja(Consultor consultor) {
+        darDeBaja(consultor != null ? consultor.getNombreUsuario() : null);
     }
 
     /**

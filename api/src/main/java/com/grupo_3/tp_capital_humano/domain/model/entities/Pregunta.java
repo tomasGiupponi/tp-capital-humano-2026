@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.grupo_3.tp_capital_humano.domain.patterns.audit.RegistroAuditoria;
+import com.grupo_3.tp_capital_humano.domain.patterns.audit.SujetoAuditable;
 import com.grupo_3.tp_capital_humano.domain.model.enums.TipoPregunta;
 
 import jakarta.persistence.CascadeType;
@@ -29,7 +31,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Representa una pregunta de evaluación asociada a un factor y a una escala de opciones.
+ * Representa una pregunta de evaluación asociada a un factor y a una escala de
+ * opciones.
  */
 @Entity
 @Table(name = "pregunta")
@@ -69,6 +72,20 @@ public class Pregunta extends SujetoAuditable {
     @Builder.Default
     private List<PreguntaValorOpcion> ponderacionesValores = new ArrayList<>();
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "codigo_factor", nullable = false)
+    private Factor factor;
+
+    @Override
+    protected String obtenerNombreEntidad() {
+        return "PREGUNTA";
+    }
+
+    @Override
+    protected String obtenerIdEntidad() {
+        return this.id != null ? this.id.toString() : null;
+    }
+
     /**
      * Obtiene la ponderación específica asignada a un valor de opción dentro de
      * esta pregunta,
@@ -84,7 +101,7 @@ public class Pregunta extends SujetoAuditable {
         }
 
         return this.ponderacionesValores.stream()
-                .filter(pv -> pv.getValorOpcion() != null && pv.getValorOpcion.equals(ValorOpcion))
+                .filter(pv -> pv.getValorOpcion() != null && pv.getValorOpcion().equals(ValorOpcion))
                 .mapToDouble(PreguntaValorOpcion::getPonderacion)
                 .findFirst()
                 .orElse(0.0);
@@ -92,21 +109,26 @@ public class Pregunta extends SujetoAuditable {
 
     /**
      * Coloca el campo activa en false, registra este cambio en RegistroAuditoria
-     * asignando el consultor que
-     * hizo el cambio y notifica a todos las instancias que formen parte del
-     * Observer.
+     * asignando el usuario que hizo el cambio y notifica a los observadores.
      * 
-     * @param consultor instancia que se persiste como el consultor que generó la
-     *                  acción.
+     * @param usuario nombre de usuario que generó la acción.
      */
     @Override
-    public void darDeBaja(Consultor consultor) {
+    public void darDeBaja(String usuario) {
         if (this.activa) {
             this.activa = false;
-            RegistroAuditoria reg = construirRegistro(consultor, "BAJA_LOGICA", "Pregunta",
-                    this.id != null ? this.id.toString() : null);
+            RegistroAuditoria reg = construirRegistro(usuario, "BAJA_LOGICA");
             notificarObservadores(reg);
         }
+    }
+
+    /**
+     * Sobrecarga que permite dar de baja pasando la instancia del consultor.
+     * 
+     * @param consultor consultor que generó la acción.
+     */
+    public void darDeBaja(Consultor consultor) {
+        darDeBaja(consultor != null ? consultor.getNombreUsuario() : null);
     }
 
     /**

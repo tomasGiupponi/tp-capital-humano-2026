@@ -1,5 +1,9 @@
 package com.grupo_3.tp_capital_humano.domain.model.entities;
 
+import com.grupo_3.tp_capital_humano.domain.patterns.audit.RegistroAuditoria;
+import com.grupo_3.tp_capital_humano.domain.patterns.audit.SujetoAuditable;
+
+import java.util.List;
 import java.util.Objects;
 
 import jakarta.persistence.Column;
@@ -18,7 +22,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Representa un factor o componente específico perteneciente a una competencia evaluable.
+ * Representa un factor o componente específico perteneciente a una competencia
+ * evaluable.
  */
 @Entity
 @Table(name = "factor")
@@ -49,16 +54,23 @@ public class Factor extends SujetoAuditable {
     @Column(name = "activo", nullable = false)
     private boolean activo = true;
 
+    @Override
+    protected String obtenerNombreEntidad() {
+        return "FACTOR";
+    }
+
+    @Override
+    protected String obtenerIdEntidad() {
+        return this.codigo;
+    }
+
     /**
      * Calcula el puntaje tomando las preguntas respondidas por el candidato, y por
-     * cada
-     * pregunta seleccionada, obtiene la ponderación para el valor seleccionado y
+     * cada pregunta seleccionada, obtiene la ponderación para el valor seleccionado y
      * suma todas estas.
      * 
-     * @param PreguntasSeleccionadas lista de las preguntas respondidas por el
-     *                               candidato
-     * @return retorna el valor casteado a float de la división entre la suma
-     *         obtenida y 2.
+     * @param PreguntasSeleccionadas lista de las preguntas respondidas por el candidato
+     * @return retorna el valor casteado a float de la división entre la suma obtenida y 2.
      */
     public float calcularPuntaje(List<PreguntaSeleccionada> PreguntasSeleccionadas) {
         if (PreguntasSeleccionadas == null || PreguntasSeleccionadas.isEmpty()) {
@@ -77,22 +89,27 @@ public class Factor extends SujetoAuditable {
     }
 
     /**
-     * Coloca el campo activa en false, registra este cambio en RegistroAuditoria
-     * asignando el consultor que
-     * hizo el cambio y notifica a todos las instancias que formen parte del
-     * Observer.
+     * Coloca el campo activo en false, registra este cambio en RegistroAuditoria
+     * asignando el usuario que hizo el cambio y notifica a los observadores.
      * 
-     * @param consultor instancia que se persiste como el consultor que generó la
-     *                  acción.
+     * @param usuario nombre de usuario que generó la acción.
      */
     @Override
-    public void darDeBaja(Consultor consultor) {
+    public void darDeBaja(String usuario) {
         if (this.activo) {
             this.activo = false;
-            ;
-            RegistroAuditoria reg = construirRegistro(consultor, "BAJA_LOGICA", "Factor", this.codigo);
+            RegistroAuditoria reg = construirRegistro(usuario, "BAJA_LOGICA");
             notificarObservadores(reg);
         }
+    }
+
+    /**
+     * Sobrecarga que permite dar de baja pasando la instancia del consultor.
+     * 
+     * @param consultor consultor que generó la acción.
+     */
+    public void darDeBaja(Consultor consultor) {
+        darDeBaja(consultor != null ? consultor.getNombreUsuario() : null);
     }
 
     /**

@@ -42,6 +42,7 @@ public class ConstructorCuestionario {
         cuestionario.setClave(generarClaveAleatoria8Caracteres());
         cuestionario.setFechaCreacion(LocalDateTime.now());
         cuestionario.cambiarEstado(new EstadoActivo()); // Nace en Activo
+        cuestionario.setConfiguracion(this.configuracion);
 
         // PASO 1: Sorteo de exactamente 2 preguntas activas por cada factor (Regla CU
         // 025)

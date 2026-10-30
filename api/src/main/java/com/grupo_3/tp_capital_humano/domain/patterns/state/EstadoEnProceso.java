@@ -15,7 +15,7 @@ public class EstadoEnProceso extends EstadoCuestionario {
     @Override
     public boolean permitirIngreso(Cuestionario cuestionario) {
         // 1. Validar límite de accesos / cortes de conexión
-        if (cuestionario.getCantidadAccesos() >= cuestionario.getMaximoAccesosPermitidos()) {
+        if (cuestionario.getCantidadAccesos() >= cuestionario.getConfiguracion().getMaximoAccesos()) {
             this.cambiarEstado(cuestionario, new EstadoIncompleto());
             return false;
         }
@@ -49,7 +49,7 @@ public class EstadoEnProceso extends EstadoCuestionario {
         }
         long minutosTranscurridos = Duration.between(cuestionario.getFechaHoraInicio(), LocalDateTime.now())
                 .toMinutes();
-        if (minutosTranscurridos > cuestionario.getTiempoMaximoMinutos()) {
+        if (minutosTranscurridos > cuestionario.getConfiguracion().getTiempoMaximo()) {
             // Transición 5: Tiempo agotado
             this.cambiarEstado(cuestionario, new EstadoIncompleto());
             return false;

@@ -3,11 +3,14 @@ package com.grupo_3.tp_capital_humano.domain.model.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Representa un bloque de preguntas dentro de un cuestionario para su resolución secuencial y paginada.
+ * Representa un bloque de preguntas dentro de un cuestionario para su
+ * resolución secuencial y paginada.
  */
 @Entity
 @Table(name = "bloque_cuestionario")
@@ -35,6 +38,10 @@ public class BloqueCuestionario {
     @Builder.Default
     @Column(name = "contestado", nullable = false)
     private boolean contestado = false;
+
+    @OneToMany(mappedBy = "bloque", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<PreguntaSeleccionada> preguntas = new ArrayList<>();
 
     public boolean estaContestado() {
         return this.contestado;

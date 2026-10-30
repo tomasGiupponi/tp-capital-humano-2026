@@ -3,7 +3,6 @@ package com.grupo_3.tp_capital_humano.domain.model.entities;
 import com.grupo_3.tp_capital_humano.domain.model.enums.NombreEstadoCuestionario;
 import com.grupo_3.tp_capital_humano.domain.patterns.state.*;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -74,6 +73,9 @@ public class Cuestionario {
     @OneToMany(mappedBy = "cuestionario", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<BloqueCuestionario> bloques = new ArrayList<>();
+
+    @Transient // Vive en memoria mientras se procesa el cuestionario
+    private ConfiguracionCuestionario configuracion;
 
     /**
      * Al obtener el cuestionario desde la base de datos,

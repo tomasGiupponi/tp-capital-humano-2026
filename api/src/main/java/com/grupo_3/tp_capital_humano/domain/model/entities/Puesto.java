@@ -1,7 +1,11 @@
 package com.grupo_3.tp_capital_humano.domain.model.entities;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import com.grupo_3.tp_capital_humano.domain.patterns.audit.RegistroAuditoria;
+import com.grupo_3.tp_capital_humano.domain.patterns.audit.SujetoAuditable;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,7 +23,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Representa un puesto laboral dentro de una empresa que requiere un perfil de competencias.
+ * Representa un puesto laboral dentro de una empresa que requiere un perfil de
+ * competencias.
  */
 @Entity
 @Table(name = "puesto")
@@ -46,32 +51,43 @@ public class Puesto extends SujetoAuditable {
     @Column(name = "activo", nullable = false)
     private boolean activo = true;
 
-    @ManyToMany 
-    @JoinTable(
-        name = "puesto_competencia",
-        joinColumns = @JoinColumn(name = "codigo_puesto"),
-        inverseJoinColumns = @JoinColumn(name = "codigo_competencia")
-    )
+    @ManyToMany
+    @JoinTable(name = "puesto_competencia", joinColumns = @JoinColumn(name = "codigo_puesto"), inverseJoinColumns = @JoinColumn(name = "codigo_competencia"))
     @Builder.Default
-    private List<Competencia> competencias = new Arraylist<>();
+    private List<Competencia> competencias = new ArrayList<>();
+
+    @Override
+    protected String obtenerNombreEntidad() {
+        return "PUESTO";
+    }
+
+    @Override
+    protected String obtenerIdEntidad() {
+        return this.codigo;
+    }
 
     /**
-     * Coloca el campo activa en false, registra este cambio en RegistroAuditoria
-     * asignando el consultor que
-     * hizo el cambio y notifica a todos las instancias que formen parte del
-     * Observer.
+     * Coloca el campo activo en false, registra este cambio en RegistroAuditoria
+     * asignando el usuario que hizo el cambio y notifica a los observadores.
      * 
-     * @param consultor instancia que se persiste como el consultor que generó la
-     *                  acción.
+     * @param usuario nombre de usuario que generó la acción.
      */
     @Override
-    public void darDeBaja(Consultor consultor) {
+    public void darDeBaja(String usuario) {
         if (this.activo) {
             this.activo = false;
-            ;
-            RegistroAuditoria reg = construirRegistro(consultor, "BAJA_LOGICA", "Factor", this.codigo);
+            RegistroAuditoria reg = construirRegistro(usuario, "BAJA_LOGICA");
             notificarObservadores(reg);
         }
+    }
+
+    /**
+     * Sobrecarga que permite dar de baja pasando la instancia del consultor.
+     * 
+     * @param consultor consultor que generó la acción.
+     */
+    public void darDeBaja(Consultor consultor) {
+        darDeBaja(consultor != null ? consultor.getNombreUsuario() : null);
     }
 
     /**
